@@ -2,16 +2,33 @@
 import React from 'react';
 
 const CocktailResults = ({ cocktails }) => {
+  console.log("🚀 ~ CocktailResults ~ cocktails:", cocktails)
   return (
     <div>
       <h2>Cocktail Results</h2>
       {cocktails && cocktails.length > 0 ? (
         <ul>
           {cocktails.map((cocktail) => (
-            <li key={cocktail.idDrink}>
+            <div key={cocktail.idDrink}>
+              <h3>{cocktail.strDrink}</h3>
               <img src={cocktail.strDrinkThumb} alt={cocktail.strDrink} />
-              <p>{cocktail.strDrink}</p>
-            </li>
+              <p>{cocktail.strMeasure1} {cocktail.strIngredient1}</p>
+                <p>{cocktail.strMeasure2} {cocktail.strIngredient2}</p>
+                <p>{cocktail.strMeasure3} {cocktail.strIngredient3}</p>
+                <p>{cocktail.strMeasure4} {cocktail.strIngredient4}</p>
+                <p>{cocktail.strMeasure5} {cocktail.strIngredient5}</p>
+                <p>{cocktail.strMeasure6} {cocktail.strIngredient6}</p>
+                <p>{cocktail.strMeasure7} {cocktail.strIngredient7}</p>
+                <p>{cocktail.strMeasure8} {cocktail.strIngredient8}</p>
+                <p>{cocktail.strMeasure9} {cocktail.strIngredient9}</p>
+                <p>{cocktail.strMeasure10} {cocktail.strIngredient10}</p>
+                <p>{cocktail.strMeasure11} {cocktail.strIngredient11}</p>
+                <p>{cocktail.strMeasure12} {cocktail.strIngredient12}</p>
+                <p>{cocktail.strMeasure13} {cocktail.strIngredient13}</p>
+                <p>{cocktail.strMeasure14} {cocktail.strIngredient14}</p>
+                <p>{cocktail.strMeasure15} {cocktail.strIngredient15}</p>
+              <p>{cocktail.strInstructions}</p>
+            </div>
           ))}
         </ul>
       ) : (
