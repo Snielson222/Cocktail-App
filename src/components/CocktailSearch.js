@@ -1,5 +1,6 @@
 // src/components/CocktailSearch.js
 import React, { useState, useEffect } from 'react';
+import CocktailResults from './CocktailResults';
 
 const CocktailSearch = () => {
   const [ingredientList, setIngredientList] = useState([]);
@@ -24,21 +25,73 @@ const CocktailSearch = () => {
     fetchIngredients();
   }, []);
 
-  const fetchCocktails = async () => {
+  const fetchCocktails = async (ingredient) => {
     try {
       const response = await fetch(
-        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient1},${ingredient2}`
+        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient}`
       );
       const data = await response.json();
-      setCocktails(data.drinks);
+      return data.drinks || [];
     } catch (error) {
-      console.error('Error fetching cocktails:', error);
+      console.error(`Error fetching cocktails with ${ingredient}:`, error);
+      return [];
     }
   };
 
-  const handleSearch = (e) => {
+  const fetchCocktailDetails = async (idDrink) => {
+    try {
+      const response = await fetch(
+        `https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${idDrink}`
+      );
+      const data = await response.json();
+      return data.drinks[0];
+    } catch (error) {
+      console.error(`Error fetching cocktail details with ID ${idDrink}:`, error);
+      return null;
+    }
+  };
+
+  const handleSearch = async (e) => {
     e.preventDefault();
-    fetchCocktails();
+    if (ingredient1 && ingredient2) {
+      // Fetch cocktails for each ingredient
+      const cocktails1 = await fetchCocktails(ingredient1);
+      const cocktails2 = await fetchCocktails(ingredient2);
+
+      // Find common cocktails in both arrays
+      const commonCocktails = cocktails1.filter(cocktail1 =>
+        cocktails2.some(cocktail2 => cocktail1.idDrink === cocktail2.idDrink)
+      );
+
+      // Fetch detailed information for each common cocktail
+      const detailedCocktails = await Promise.all(
+        commonCocktails.map(cocktail => fetchCocktailDetails(cocktail.idDrink))
+      );
+
+      // Filter those cocktails that contain both ingredients
+      const filteredCocktails = detailedCocktails.filter(cocktail => {
+        const ingredients = [
+          cocktail.strIngredient1,
+          cocktail.strIngredient2,
+          cocktail.strIngredient3,
+          cocktail.strIngredient4,
+          cocktail.strIngredient5,
+          cocktail.strIngredient6,
+          cocktail.strIngredient7,
+          cocktail.strIngredient8,
+          cocktail.strIngredient9,
+          cocktail.strIngredient10,
+          cocktail.strIngredient11,
+          cocktail.strIngredient12,
+          cocktail.strIngredient13,
+          cocktail.strIngredient14,
+          cocktail.strIngredient15,
+        ];
+        return ingredients.includes(ingredient1) && ingredients.includes(ingredient2);
+      });
+
+      setCocktails(filteredCocktails);
+    }
   };
 
   return (
@@ -66,16 +119,8 @@ const CocktailSearch = () => {
         <button type="submit">Search</button>
       </form>
 
-      {cocktails && (
-        <ul>
-          {cocktails.map((cocktail) => (
-            <li key={cocktail.idDrink}>
-              <img src={cocktail.strDrinkThumb} alt={cocktail.strDrink} />
-              <p>{cocktail.strDrink}</p>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Render CocktailResults component */}
+      <CocktailResults cocktails={cocktails} />
     </div>
   );
 };
