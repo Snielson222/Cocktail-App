@@ -5,7 +5,7 @@ const CocktailResults = ({ cocktails }) => {
   console.log("🚀 ~ CocktailResults ~ cocktails:", cocktails)
   return (
     <div>
-      <h2>Cocktails That Can Be Made With Selected Ingredients</h2>
+      <h2>Cocktails That Can Be Made With Selected</h2>
       {cocktails && cocktails.length > 0 ? (
         <ul>
           {cocktails.map((cocktail) => (
@@ -32,7 +32,17 @@ const CocktailResults = ({ cocktails }) => {
           ))}
         </ul>
       ) : (
+        <div>
         <p>No cocktails found with the selected ingredients.</p>
+        {/* Image linked to logo.webp */}
+        <a href="/">
+          <img
+            src={`${process.env.PUBLIC_URL}/logo.webp`}
+            alt="App Logo"
+            style={{ width: '100px', marginTop: '20px' }}
+          />
+        </a>
+      </div>
       )}
     </div>
   );
