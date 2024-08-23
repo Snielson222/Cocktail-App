@@ -4,8 +4,7 @@ import CocktailResults from './CocktailResults';
 
 const CocktailSearch = () => {
   const [ingredientList, setIngredientList] = useState([]);
-  const [ingredient1, setIngredient1] = useState('');
-  const [ingredient2, setIngredient2] = useState('');
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [cocktails, setCocktails] = useState([]);
 
   // Fetch the list of ingredients when the component mounts
@@ -38,86 +37,76 @@ const CocktailSearch = () => {
     }
   };
 
-  const fetchCocktailDetails = async (idDrink) => {
-    try {
-      const response = await fetch(
-        `https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${idDrink}`
+  const handleIngredientClick = async (ingredient) => {
+    let updatedIngredients;
+
+    if (selectedIngredients.includes(ingredient)) {
+      // Remove ingredient from the selection
+      updatedIngredients = selectedIngredients.filter(
+        (i) => i !== ingredient
       );
-      const data = await response.json();
-      return data.drinks[0];
-    } catch (error) {
-      console.error(`Error fetching cocktail details with ID ${idDrink}:`, error);
-      return null;
+    } else {
+      // Add ingredient to the selection
+      updatedIngredients = [...selectedIngredients, ingredient];
     }
-  };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (ingredient1 && ingredient2) {
-      // Fetch cocktails for each ingredient
-      const cocktails1 = await fetchCocktails(ingredient1);
-      const cocktails2 = await fetchCocktails(ingredient2);
+    setSelectedIngredients(updatedIngredients);
 
-      // Find common cocktails in both arrays
-      const commonCocktails = cocktails1.filter(cocktail1 =>
-        cocktails2.some(cocktail2 => cocktail1.idDrink === cocktail2.idDrink)
-      );
-
-      // Fetch detailed information for each common cocktail
-      const detailedCocktails = await Promise.all(
-        commonCocktails.map(cocktail => fetchCocktailDetails(cocktail.idDrink))
-      );
-
-      // Filter those cocktails that contain both ingredients
-      const filteredCocktails = detailedCocktails.filter(cocktail => {
-        const ingredients = [
-          cocktail.strIngredient1,
-          cocktail.strIngredient2,
-          cocktail.strIngredient3,
-          cocktail.strIngredient4,
-          cocktail.strIngredient5,
-          cocktail.strIngredient6,
-          cocktail.strIngredient7,
-          cocktail.strIngredient8,
-          cocktail.strIngredient9,
-          cocktail.strIngredient10,
-          cocktail.strIngredient11,
-          cocktail.strIngredient12,
-          cocktail.strIngredient13,
-          cocktail.strIngredient14,
-          cocktail.strIngredient15,
-        ];
-        return ingredients.includes(ingredient1) && ingredients.includes(ingredient2);
-      });
-
-      setCocktails(filteredCocktails);
+    if (updatedIngredients.length === 0) {
+      setCocktails([]); // No ingredients selected, no cocktails to show
+      return;
     }
+
+    // Fetch cocktails for each selected ingredient
+    const cocktailPromises = updatedIngredients.map((ing) =>
+      fetchCocktails(ing)
+    );
+
+    const results = await Promise.all(cocktailPromises);
+
+    // Find common cocktails that can be made with all selected ingredients
+    const filteredCocktails = results.reduce((acc, curr) => {
+      if (acc === null) {
+        return curr;
+      }
+      return acc.filter((cocktail) =>
+        curr.some((c) => c.idDrink === cocktail.idDrink)
+      );
+    }, null);
+
+    setCocktails(filteredCocktails || []);
   };
 
   return (
     <div>
       <h1>Find Cocktails</h1>
-      <form onSubmit={handleSearch}>
-        <select value={ingredient1} onChange={(e) => setIngredient1(e.target.value)}>
-          <option value="">Select First Ingredient</option>
+      <div>
+        <h3>Select Ingredients:</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {ingredientList.map((ingredient) => (
-            <option key={ingredient.strIngredient1} value={ingredient.strIngredient1}>
+            <button
+              key={ingredient.strIngredient1}
+              onClick={() =>
+                handleIngredientClick(ingredient.strIngredient1)
+              }
+              style={{
+                margin: '5px',
+                padding: '10px',
+                backgroundColor: selectedIngredients.includes(
+                  ingredient.strIngredient1
+                )
+                  ? 'lightblue'
+                  : 'white',
+                border: '1px solid gray',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
+            >
               {ingredient.strIngredient1}
-            </option>
+            </button>
           ))}
-        </select>
-
-        <select value={ingredient2} onChange={(e) => setIngredient2(e.target.value)}>
-          <option value="">Select Second Ingredient</option>
-          {ingredientList.map((ingredient) => (
-            <option key={ingredient.strIngredient1} value={ingredient.strIngredient1}>
-              {ingredient.strIngredient1}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit">Search</button>
-      </form>
+        </div>
+      </div>
 
       {/* Render CocktailResults component */}
       <CocktailResults cocktails={cocktails} />
