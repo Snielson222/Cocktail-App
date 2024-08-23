@@ -7,8 +7,6 @@ const CocktailSearch = () => {
   const [nonAlcoholicIngredients, setNonAlcoholicIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [cocktails, setCocktails] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchIngredients = async () => {
@@ -20,7 +18,6 @@ const CocktailSearch = () => {
         categorizeIngredients(data.drinks);
       } catch (error) {
         console.error('Error fetching ingredients:', error);
-        setError('Failed to load ingredients. Please try again later.');
       }
     };
 
@@ -86,17 +83,13 @@ const CocktailSearch = () => {
 
   const fetchCocktails = async (ingredient) => {
     try {
-      setLoading(true);
       const response = await fetch(
         `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient}`
       );
       const data = await response.json();
-      setLoading(false);
       return data.drinks || [];
     } catch (error) {
       console.error(`Error fetching cocktails with ${ingredient}:`, error);
-      setLoading(false);
-      setError(`Failed to load cocktails with ${ingredient}.`);
       return [];
     }
   };
@@ -117,12 +110,14 @@ const CocktailSearch = () => {
       return;
     }
 
+    // Fetch and filter cocktails
     const cocktailPromises = updatedIngredients.map((ing) =>
       fetchCocktails(ing)
     );
 
     const results = await Promise.all(cocktailPromises);
 
+    // Find common cocktails using intersection
     const filteredCocktails = results.reduce((acc, curr) => {
       if (acc === null) {
         return curr;
@@ -130,7 +125,7 @@ const CocktailSearch = () => {
       return acc.filter((cocktail) =>
         curr.some((c) => c.idDrink === cocktail.idDrink)
       );
-    }, null);
+    });
 
     setCocktails(filteredCocktails || []);
   };
@@ -148,9 +143,7 @@ const CocktailSearch = () => {
               style={{
                 margin: '5px',
                 padding: '10px',
-                backgroundColor: selectedIngredients.includes(
-                  ingredient.strIngredient1
-                )
+                backgroundColor: selectedIngredients.includes(ingredient.strIngredient1)
                   ? 'lightblue'
                   : 'white',
                 border: '1px solid gray',
@@ -172,9 +165,7 @@ const CocktailSearch = () => {
               style={{
                 margin: '5px',
                 padding: '10px',
-                backgroundColor: selectedIngredients.includes(
-                  ingredient.strIngredient1
-                )
+                backgroundColor: selectedIngredients.includes(ingredient.strIngredient1)
                   ? 'lightblue'
                   : 'white',
                 border: '1px solid gray',
@@ -188,13 +179,8 @@ const CocktailSearch = () => {
         </div>
       </div>
 
-      {loading ? (
-        <p>Loading cocktails...</p>
-      ) : error ? (
-        <p style={{ color: 'red' }}>{error}</p>
-      ) : (
-        <CocktailResults cocktails={cocktails} />
-      )}
+      {/* Render CocktailResults component */}
+      <CocktailResults cocktails={cocktails} />
     </div>
   );
 };
