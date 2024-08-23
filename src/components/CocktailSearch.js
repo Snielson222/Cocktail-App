@@ -144,9 +144,9 @@ const CocktailSearch = () => {
 
   return (
     <div>
-      <h1>Find Cocktails</h1>
+      <h1>Search Cocktails Based on Any Number of Ingredients</h1>
       <div>
-        <h3>Alcoholic Ingredients:</h3>
+        <h3>Alcoholic Ingredients</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {alcoholicIngredients.map((ingredient) => (
             <button
@@ -172,7 +172,7 @@ const CocktailSearch = () => {
           ))}
         </div>
 
-        <h3>Non-Alcoholic Ingredients:</h3>
+        <h3>Non-Alcoholic Ingredients</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {nonAlcoholicIngredients.map((ingredient) => (
             <button

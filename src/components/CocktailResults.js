@@ -5,7 +5,7 @@ const CocktailResults = ({ cocktails }) => {
   console.log("🚀 ~ CocktailResults ~ cocktails:", cocktails)
   return (
     <div>
-      <h2>Cocktail Results</h2>
+      <h2>Cocktails That Can Be Made With Selected Ingredients</h2>
       {cocktails && cocktails.length > 0 ? (
         <ul>
           {cocktails.map((cocktail) => (
