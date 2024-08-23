@@ -7,8 +7,9 @@ const CocktailSearch = () => {
   const [nonAlcoholicIngredients, setNonAlcoholicIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [cocktails, setCocktails] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch the list of ingredients when the component mounts
   useEffect(() => {
     const fetchIngredients = async () => {
       try {
@@ -19,13 +20,13 @@ const CocktailSearch = () => {
         categorizeIngredients(data.drinks);
       } catch (error) {
         console.error('Error fetching ingredients:', error);
+        setError('Failed to load ingredients. Please try again later.');
       }
     };
 
     fetchIngredients();
   }, []);
 
-  // Categorize ingredients into alcoholic and non-alcoholic
   const categorizeIngredients = (ingredients) => {
     const alcoholicList = [];
     const nonAlcoholicList = [];
@@ -33,8 +34,6 @@ const CocktailSearch = () => {
     ingredients.forEach((ingredient) => {
       const name = ingredient.strIngredient1.toLowerCase();
 
-      // Simple categorization logic based on common knowledge
-      // You can expand this with more detailed data if needed
       if (
         name.includes('vodka') ||
         name.includes('rum') ||
@@ -76,11 +75,7 @@ const CocktailSearch = () => {
         name.includes('bourbon')
       ) {
         alcoholicList.push(ingredient);
-      } 
-      else if (name.includes('ger')) {
-        nonAlcoholicList.push(ingredient);
-      }
-      else {
+      } else {
         nonAlcoholicList.push(ingredient);
       }
     });
@@ -91,13 +86,17 @@ const CocktailSearch = () => {
 
   const fetchCocktails = async (ingredient) => {
     try {
+      setLoading(true);
       const response = await fetch(
         `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient}`
       );
       const data = await response.json();
+      setLoading(false);
       return data.drinks || [];
     } catch (error) {
       console.error(`Error fetching cocktails with ${ingredient}:`, error);
+      setLoading(false);
+      setError(`Failed to load cocktails with ${ingredient}.`);
       return [];
     }
   };
@@ -106,30 +105,24 @@ const CocktailSearch = () => {
     let updatedIngredients;
 
     if (selectedIngredients.includes(ingredient)) {
-      // Remove ingredient from the selection
-      updatedIngredients = selectedIngredients.filter(
-        (i) => i !== ingredient
-      );
+      updatedIngredients = selectedIngredients.filter((i) => i !== ingredient);
     } else {
-      // Add ingredient to the selection
       updatedIngredients = [...selectedIngredients, ingredient];
     }
 
     setSelectedIngredients(updatedIngredients);
 
     if (updatedIngredients.length === 0) {
-      setCocktails([]); // No ingredients selected, no cocktails to show
+      setCocktails([]);
       return;
     }
 
-    // Fetch cocktails for each selected ingredient
     const cocktailPromises = updatedIngredients.map((ing) =>
       fetchCocktails(ing)
     );
 
     const results = await Promise.all(cocktailPromises);
 
-    // Find common cocktails that can be made with all selected ingredients
     const filteredCocktails = results.reduce((acc, curr) => {
       if (acc === null) {
         return curr;
@@ -151,9 +144,7 @@ const CocktailSearch = () => {
           {alcoholicIngredients.map((ingredient) => (
             <button
               key={ingredient.strIngredient1}
-              onClick={() =>
-                handleIngredientClick(ingredient.strIngredient1)
-              }
+              onClick={() => handleIngredientClick(ingredient.strIngredient1)}
               style={{
                 margin: '5px',
                 padding: '10px',
@@ -177,9 +168,7 @@ const CocktailSearch = () => {
           {nonAlcoholicIngredients.map((ingredient) => (
             <button
               key={ingredient.strIngredient1}
-              onClick={() =>
-                handleIngredientClick(ingredient.strIngredient1)
-              }
+              onClick={() => handleIngredientClick(ingredient.strIngredient1)}
               style={{
                 margin: '5px',
                 padding: '10px',
@@ -199,8 +188,13 @@ const CocktailSearch = () => {
         </div>
       </div>
 
-      {/* Render CocktailResults component */}
-      <CocktailResults cocktails={cocktails} />
+      {loading ? (
+        <p>Loading cocktails...</p>
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p>
+      ) : (
+        <CocktailResults cocktails={cocktails} />
+      )}
     </div>
   );
 };
